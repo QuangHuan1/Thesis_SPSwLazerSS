@@ -1,0 +1,2 @@
+idf_component_register(SRCS "3_check_state.c" "7_lazer_sensor.c" "6_indicator.c" "5_uart.c" "2_connect_local.c" "1_camera_main.c" "0_app_main.c" "4_datetime.c"
+                    INCLUDE_DIRS "include")
