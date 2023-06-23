@@ -13,19 +13,18 @@ void Get_current_date_time(char *date_time, char *date_time_raw){
 	time_t now;
 	    struct tm timeinfo;
 	    time(&now);
-	    localtime_r(&now, &timeinfo);
+	    // localtime_r(&now, &timeinfo);
 
-	    	// Set timezone to Indian Standard Time
-	    	    setenv("TZ", "UTC-07", 1);
-	    	    tzset();
-	    	    localtime_r(&now, &timeinfo);
+		// Set timezone to Indian Standard Time
+		setenv("TZ", "UTC-07", 1);
+		tzset();
+		localtime_r(&now, &timeinfo);
 
-	    	    strftime(strftime_buf, sizeof(strftime_buf), "%G%m%dT%H%M%S000Z", &timeinfo);
-	    	    strftime(strftime_buf_raw, sizeof(strftime_buf_raw), "%FT%T.000Z", &timeinfo);
+		strftime(strftime_buf, sizeof(strftime_buf), "%G%m%dT%H%M%S000Z", &timeinfo);
+		strftime(strftime_buf_raw, sizeof(strftime_buf_raw), "%FT%T.000Z", &timeinfo);
 
-	    	    // ESP_LOGI(TAG_DATE, "The current date/time in Delhi is: %s", strftime_buf);
-                strcpy(date_time,strftime_buf);
-                strcpy(date_time_raw,strftime_buf_raw);
+		strcpy(date_time,strftime_buf);
+		strcpy(date_time_raw,strftime_buf_raw);
 
 }
 
@@ -43,14 +42,12 @@ void initialize_sntp(void)
 }
 void obtain_time(void)
 {
-
-
     initialize_sntp();
     // wait for time to be set
     time_t now = 0;
     struct tm timeinfo = { 0 };
     int retry = 0;
-    const int retry_count = 10;
+    const int retry_count = 20;
     while (sntp_get_sync_status() == SNTP_SYNC_STATUS_RESET && ++retry < retry_count) {
         ESP_LOGI(TAG_DATE, "Waiting for system time to be set... (%d/%d)", retry, retry_count);
         vTaskDelay(2000 / portTICK_PERIOD_MS);

@@ -3,60 +3,33 @@
 void lazer_sensor(void *arg)
 {   
     while(1){
-        if(gpio_get_level(lazer0.lazer_front) && !gpio_get_level(lazer0.lazer_rear)){
+        volatile uint8_t front = gpio_get_level(lazer0.lazer_front);
+        volatile uint8_t rear = gpio_get_level(lazer0.lazer_rear);
+
+        printf("FRONT %d\n",front);
+        printf("REAR %d\n",rear);
+
+        if()
+        if(front == 1 && rear == 0 ){
             WORKING_STATE = CHECKIN;
-            while (1)
-            {   
-                uint8_t lazer_front_value = gpio_get_level(lazer0.lazer_front);
-                uint8_t lazer_rear_value = gpio_get_level(lazer0.lazer_rear);
-
-                if(lazer_front_value && lazer_rear_value){
-                    PREP_CHECKIN = TRUE;
-                    DONE_CHECKIN = FALSE;
-                }
-                else if(!lazer_front_value && lazer_rear_value){
-                    PREP_CHECKIN = FALSE;
-                    DONE_CHECKIN = TRUE;
-                }
-                else if(!lazer_front_value && !lazer_rear_value){
-                    WORKING_STATE = IDLE;
-                    PREP_CHECKIN = FALSE;
-                    DONE_CHECKIN = FALSE;
-                    break;
-                }
-
-                vTaskDelay(5 / portTICK_PERIOD_MS);
-            }
+            Get_current_date_time(Current_Date_Time, Current_Date_Time_Raw);
             
-        }
-        else if (!gpio_get_level(lazer0.lazer_front) && gpio_get_level(lazer0.lazer_rear)){
-            WORKING_STATE = CHECKOUT;
-            while (1)
-            {
-                uint8_t lazer_front_value = gpio_get_level(lazer0.lazer_front);
-                uint8_t lazer_rear_value = gpio_get_level(lazer0.lazer_rear);
+            ESP_LOGI(TAG_CAM, "Working in CHECK-IN state!");
+            vTaskDelay( 10000 / portTICK_PERIOD_MS);
 
-                if(lazer_front_value && lazer_rear_value){
-                    PREP_CHECKOUT = TRUE;
-                    DONE_CHECKOUT = FALSE;
-                }
-                else if(lazer_front_value && !lazer_rear_value){
-                    PREP_CHECKOUT = FALSE;
-                    DONE_CHECKOUT = TRUE;
-                }
-                else if(!lazer_front_value && !lazer_rear_value){
-                    WORKING_STATE = IDLE;
-                    PREP_CHECKOUT = FALSE;
-                    DONE_CHECKOUT = FALSE;
-                    break;
-                }
-                vTaskDelay(5 / portTICK_PERIOD_MS);
-            }
+        }
+        else if (front == 0 && rear == 1){
+            WORKING_STATE = CHECKOUT;
+            Get_current_date_time(Current_Date_Time, Current_Date_Time_Raw);
+
+            ESP_LOGI(TAG_CAM, "Working in CHECK-OUT state!");
+            vTaskDelay( 10000 / portTICK_PERIOD_MS);
+
         }
         else{
+            ESP_LOGI(TAG_CAM, "Working in IDLE state!");
             WORKING_STATE = IDLE;
         }
-
         vTaskDelay(DELAY_TIME / portTICK_PERIOD_MS);
     }
 }

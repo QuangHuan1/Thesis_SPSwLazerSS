@@ -34,8 +34,8 @@ gpio_serveral gpio0 = {
 };
 
 lazer_pin lazer0 = {
-    .lazer_front = GPIO_NUM_13,
-    .lazer_rear = GPIO_NUM_15,
+    .lazer_front = GPIO_NUM_15,
+    .lazer_rear = GPIO_NUM_13,
 };
 #endif
 
@@ -60,9 +60,11 @@ void app_main(void)
 
     gpio_pad_select_gpio (lazer0.lazer_front);
     gpio_set_direction(lazer0.lazer_front, GPIO_MODE_INPUT);
+    // gpio_set_pull_mode (lazer0.lazer_front, GPIO_PULLDOWN_ONLY);
     
     gpio_pad_select_gpio (lazer0.lazer_rear);
     gpio_set_direction(lazer0.lazer_rear, GPIO_MODE_INPUT);
+
 
     wifi_err = 1;
     sensor_err = 1;
@@ -87,10 +89,7 @@ void app_main(void)
     esp_log_level_set("*", ESP_LOG_INFO);
     // esp_log_level_set("*", ESP_LOG_NONE);
 
-
-    // ERROR_COUNT = 0;
     wifi_err = wifi_connect();
-    // wifi_err = ESP_OK;
     if (wifi_err == ESP_OK)
     {
         if (initiate_camera() != ESP_OK)
@@ -99,14 +98,16 @@ void app_main(void)
             return;
         }
         ESP_ERROR_CHECK(init_uart());
-        // Set_SystemTime_SNTP();
-
+        Set_SystemTime_SNTP();
         vTaskDelay(500 / portTICK_PERIOD_MS);
+        gpio_set_pull_mode (lazer0.lazer_front, GPIO_PULLDOWN_ONLY);
+        gpio_set_pull_mode (lazer0.lazer_rear, GPIO_PULLDOWN_ONLY);
+
         
         xTaskCreatePinnedToCore(&lazer_sensor, "lazer_sensor", 1024*3, NULL, 0, NULL, 0);
+        xTaskCreatePinnedToCore(&check_state, "check_state", 1024*2, NULL, 2, NULL, 0);
         xTaskCreatePinnedToCore(&jpg_capture, "jpg_capture", 1024*4, NULL, 0, NULL, 1);
         xTaskCreatePinnedToCore(&rx_task, "rx_task", 1024*2, NULL, 1, NULL, 1);
-        xTaskCreatePinnedToCore(&check_state, "check_state", 1024*2, NULL, 2, NULL, 1);
 
 
         ESP_LOGI(TAG_CAM, "Tasks is created and running\n");

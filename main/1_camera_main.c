@@ -83,7 +83,7 @@ void http_post_image(camera_fb_t *fb, char *path)
         }
 
         ESP_LOGI(TAG_CAM, "... connected");
-        // freeaddrinfo(res);
+        freeaddrinfo(res);
 
         char HEADER[512];
         char header[512];
@@ -104,7 +104,7 @@ void http_post_image(camera_fb_t *fb, char *path)
         strcpy(BODY, header);
         sprintf(header, "Content-Disposition: form-data; name=\"image\"; filename=\"%s.jpg\"\r\n", Current_Date_Time);
         strcat(BODY, header);
-        sprintf(header, "Content-Type: image/jpeg\r\n\r\n");
+        sprintf(header, "Content-Type: image/jpg\r\n\r\n");
         strcat(BODY, header);
 
         char END[128];
@@ -115,7 +115,7 @@ void http_post_image(camera_fb_t *fb, char *path)
         sprintf(header, "Content-Length: %d\r\n\r\n", dataLength);
         strcat(HEADER, header);
 
-        ESP_LOGD(TAG_CAM, "[%s]", HEADER);
+        // ESP_LOGI(TAG_CAM, "[%s]", HEADER);
         if (write(status, HEADER, strlen(HEADER)) < 0) {
             ESP_LOGE(TAG_CAM, "... socket1 send failed");
             close(status);
@@ -123,7 +123,7 @@ void http_post_image(camera_fb_t *fb, char *path)
             continue;
         }
 
-        ESP_LOGD(TAG_CAM, "[%s]", BODY);
+        ESP_LOGI(TAG_CAM, "[%s]", BODY);
         if (write(status, BODY, strlen(BODY)) < 0) {
             ESP_LOGE(TAG_CAM, "... socket2 send failed");
             close(status);
@@ -148,7 +148,7 @@ void http_post_image(camera_fb_t *fb, char *path)
 
         ESP_LOGI(TAG_CAM, "Starting again!");
         vTaskDelay(DELAY_TIME / portTICK_PERIOD_MS);
-
+        
         close(status);
         break;
     }
@@ -156,38 +156,38 @@ void http_post_image(camera_fb_t *fb, char *path)
 
 
 void jpg_capture(){
+    static camera_fb_t * fb1 = NULL;
+
     while(1){
         // condition for checkin/out state?
-        static camera_fb_t * fb = NULL; 
+        printf("allow_camera %d\n", allow_camera);
+        printf("capture_done %d\n", capture_done);
 
-        if((PREP_CHECKIN == ON || PREP_CHECKOUT == ON) && allow_camera == ON && capture_done == false){
-            esp_camera_fb_return(fb);
-            fb = esp_camera_fb_get();
-            if (!fb) {
-                capture_done = false;
+        if( allow_camera == TRUE && capture_done == FALSE){
+
+            fb1 = esp_camera_fb_get();
+            if (!fb1) {
+                capture_done = FALSE;
                 ESP_LOGE(TAG_CAM, "Camera capture failed");
             }
             else{
-                capture_done = true;
+                capture_done = TRUE;
                 ESP_LOGI(TAG_CAM, "Camera capture success!");
             }
-            vTaskDelay(DELAY_TIME / portTICK_PERIOD_MS);
-        }else if((DONE_CHECKIN == ON || DONE_CHECKOUT == ON) && capture_done == true){
-                ESP_LOGI(TAG_CAM, "Uploading Image!");
+            capture_done = TRUE;
+            allow_camera = FALSE;
 
-                if(DONE_CHECKIN == ON){
-                    http_post_image(fb, server_infor.post_image_checkin_path);
-                }
-                if(DONE_CHECKOUT == ON){
-                    http_post_image(fb, server_infor.post_image_checkout_path);
-                }
+            ESP_LOGI(TAG_CAM, "Uploading Image!");
 
-                postimage_done = true;
-                allow_camera = FALSE;
-                capture_done = false;
-                esp_camera_fb_return(fb);
+            if(WORKING_STATE == CHECKIN && capture_done == TRUE){
+                http_post_image(fb1, server_infor.post_image_checkin_path);
+            }
+            if(WORKING_STATE == CHECKOUT && capture_done == TRUE){
+                http_post_image(fb1, server_infor.post_image_checkout_path);
+            }
+            postimage_done = TRUE;
         }
-
+        esp_camera_fb_return(fb1);
         vTaskDelay(DELAY_TIME / portTICK_PERIOD_MS);
     }
 }

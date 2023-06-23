@@ -13,9 +13,9 @@
 #define AREA        1
 
 //Determine whether the vehicle is entering or exiting
-#define CHECKIN     0
-#define CHECKOUT    1
-#define IDLE     2
+#define IDLE     0
+#define CHECKIN     1
+#define CHECKOUT    2
 
 
 #define POSITION    GATE       //Place at GATE
@@ -142,7 +142,6 @@ uart_pin uart0;
 sensor_pin sensor0;
 gpio_serveral gpio0;
 lazer_pin lazer0;
-
 
 
 struct addrinfo *res;

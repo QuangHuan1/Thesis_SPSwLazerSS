@@ -12,9 +12,8 @@ void indicator(void *arg)
             }
         }
         
-        if(DONE_CHECKIN || DONE_CHECKOUT){
+        if(WORKING_STATE == CHECKIN || WORKING_STATE == CHECKOUT){
             gpio_set_level(gpio0.LED_Sensor_Status, 1);
-
         }
         vTaskDelay(100/ portTICK_PERIOD_MS);
     }

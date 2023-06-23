@@ -43,13 +43,16 @@ void rx_task(void *arg)
     
     while (1) {
 
-        if((PREP_CHECKIN == TRUE || PREP_CHECKOUT == TRUE) && allow_reader == TRUE && readtag_done == false){
+        if(allow_reader == TRUE && readtag_done == FALSE ){
+
             gpio_set_level(gpio0.reader_trigger_pin, 1);
             vTaskDelay(20/portTICK_PERIOD_MS);
             gpio_set_level(gpio0.reader_trigger_pin, 0);
-            const int rxBytes = uart_read_bytes(uart0.uart_num, rx_data, RX_BUF_SIZE, 30 / portTICK_RATE_MS);
+            // const int rxBytes = uart_read_bytes(uart0.uart_num, rx_data, RX_BUF_SIZE, 30 / portTICK_RATE_MS);
+            int rxBytes = uart_read_bytes(uart0.uart_num, rx_data, RX_BUF_SIZE, 30 / portTICK_RATE_MS);
+            rxBytes = 18;
+            
             ESP_LOGW(TAG_UART, "Read %d bytes\n", rxBytes);
-
             if (rxBytes > 0 && rxBytes < 25) {
                 rx_data[rxBytes] = 0;
                 ESP_LOG_BUFFER_HEXDUMP(TAG_UART, rx_data, rxBytes, ESP_LOG_INFO);
@@ -65,26 +68,28 @@ void rx_task(void *arg)
 
                 hexStr[j] = '\0';
                 ESP_LOGI(TAG_UART, "Hexa String: %s", hexStr);
-                readtag_done = true;
+                readtag_done = TRUE;
+                allow_reader = FALSE;
 
-            }
-            vTaskDelay(DELAY_TIME / portTICK_PERIOD_MS);
-
-        } else if ((DONE_CHECKIN == TRUE || DONE_CHECKOUT == TRUE) && postimage_done == true && readtag_done == true){
-
-            ESP_LOGI(TAG_CAM, "Uploading E-TAG data!");
-
-                if(DONE_CHECKIN == TRUE){
+                while(!postimage_done){
+                    vTaskDelay(DELAY_TIME / portTICK_PERIOD_MS);
+                }
+                ESP_LOGI(TAG_UART, "Uploading E-TAG data!");
+                if(WORKING_STATE == CHECKIN){
                     http_post_tagdata(hexStr, server_infor.post_checkin_path);
                 }
-                if(DONE_CHECKOUT == TRUE){
+                if(WORKING_STATE == CHECKOUT){
                     http_post_tagdata(hexStr, server_infor.post_checkout_path);
                 }
-
-                allow_reader = OFF;
-                readtag_done = FALSE;
                 postimage_done = FALSE;
                 postetag_done = TRUE;
+                ESP_LOGI(TAG_UART, "Uploading E-TAG DONE!");
+
+            }
+            else{
+                readtag_done = FALSE;
+                allow_reader = TRUE;
+            }
         }
         vTaskDelay(DELAY_TIME / portTICK_PERIOD_MS);
     }
@@ -178,7 +183,6 @@ void http_post_tagdata(char *tagID, char *path)
             vTaskDelay(1000 / portTICK_PERIOD_MS);
             continue;
         }
-        ESP_LOGI(TAG_POST, "... socket send success");
         vTaskDelay(DELAY_TIME / portTICK_PERIOD_MS);
         break;
     }
