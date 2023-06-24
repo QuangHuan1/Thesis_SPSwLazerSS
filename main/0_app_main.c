@@ -104,10 +104,10 @@ void app_main(void)
         gpio_set_pull_mode (lazer0.lazer_rear, GPIO_PULLDOWN_ONLY);
 
         
-        xTaskCreatePinnedToCore(&lazer_sensor, "lazer_sensor", 1024*3, NULL, 0, NULL, 0);
+        xTaskCreatePinnedToCore(&lazer_sensor, "lazer_sensor", 1024*2, NULL, 0, NULL, 0);
         xTaskCreatePinnedToCore(&check_state, "check_state", 1024*2, NULL, 2, NULL, 0);
-        xTaskCreatePinnedToCore(&jpg_capture, "jpg_capture", 1024*4, NULL, 0, NULL, 1);
-        xTaskCreatePinnedToCore(&rx_task, "rx_task", 1024*2, NULL, 1, NULL, 1);
+        xTaskCreatePinnedToCore(&jpg_capture, "jpg_capture", 1024*6, NULL, 0, NULL, 1);
+        xTaskCreatePinnedToCore(&rx_task, "rx_task", 1024*6, NULL, 1, NULL, 1);
 
 
         ESP_LOGI(TAG_CAM, "Tasks is created and running\n");

@@ -144,10 +144,8 @@ gpio_serveral gpio0;
 lazer_pin lazer0;
 
 
-struct addrinfo *res;
-struct in_addr *addr;
 
-int status;
+
 
 /**
  * @brief Post JSON data from MCU node to Server using HTTP POST method.

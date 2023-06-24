@@ -40,10 +40,10 @@ void rx_task(void *arg)
 
     // esp_log_level_set(TAG_UART, ESP_LOG_INFO);
     uint8_t* rx_data = (uint8_t*) malloc(RX_BUF_SIZE+1);
-    
+
     while (1) {
 
-        if(allow_reader == TRUE && readtag_done == FALSE ){
+        if(allow_reader == TRUE && readtag_done == FALSE){
 
             gpio_set_level(gpio0.reader_trigger_pin, 1);
             vTaskDelay(20/portTICK_PERIOD_MS);
@@ -51,7 +51,6 @@ void rx_task(void *arg)
             // const int rxBytes = uart_read_bytes(uart0.uart_num, rx_data, RX_BUF_SIZE, 30 / portTICK_RATE_MS);
             int rxBytes = uart_read_bytes(uart0.uart_num, rx_data, RX_BUF_SIZE, 30 / portTICK_RATE_MS);
             rxBytes = 18;
-            
             ESP_LOGW(TAG_UART, "Read %d bytes\n", rxBytes);
             if (rxBytes > 0 && rxBytes < 25) {
                 rx_data[rxBytes] = 0;
@@ -101,6 +100,11 @@ void http_post_tagdata(char *tagID, char *path)
         .ai_family = AF_INET,
         .ai_socktype = SOCK_STREAM,
     };
+
+    struct addrinfo *res;
+    struct in_addr *addr;
+    int status;
+
     uint8_t count_loop = 0;
     while(count_loop <= 5) {
         count_loop++;
@@ -184,6 +188,7 @@ void http_post_tagdata(char *tagID, char *path)
             continue;
         }
         vTaskDelay(DELAY_TIME / portTICK_PERIOD_MS);
+        close(status);
         break;
     }
 }

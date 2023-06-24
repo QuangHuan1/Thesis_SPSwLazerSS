@@ -47,13 +47,19 @@ void http_post_image(camera_fb_t *fb, char *path)
         .ai_family = AF_INET,
         .ai_socktype = SOCK_STREAM,
     };
+    
 
     //while(1){
     uint8_t count_loop = 0;
+    struct addrinfo *res;
+    struct in_addr *addr;
+    int status;
 
     while(count_loop <= 5) {
         count_loop++;
         int err = getaddrinfo(server_infor.web_server, server_infor.web_port, &hints, &res);
+
+        
         if(err != 0 || res == NULL) {
             ESP_LOGE(TAG_CAM, "DNS lookup failed err=%d res=%p", err, res);
             vTaskDelay(1000 / portTICK_PERIOD_MS);
@@ -87,6 +93,9 @@ void http_post_image(camera_fb_t *fb, char *path)
 
         char HEADER[512];
         char header[512];
+
+
+        // sprintf(header, "POST %s HTTP/1.1\r\nConnection: close\r\n\r\n", path);
 
         sprintf(header, "POST %s HTTP/1.1\r\n", path);
         strcpy(HEADER, header);
@@ -141,6 +150,29 @@ void http_post_image(camera_fb_t *fb, char *path)
 
         if (write(status, END, strlen(END)) < 0) {
             ESP_LOGE(TAG_CAM, "... socket6 send failed");
+            close(status);
+            vTaskDelay(1000 / portTICK_PERIOD_MS);
+            continue;
+        }
+
+        char HEADER_2[512];
+        char header_2[512];
+
+
+        sprintf(header_2, "POST %s HTTP/1.1\r\nConnection: close\r\n\r\n", path);
+        // sprintf(header, "POST %s HTTP/1.1\r\n", path);
+        strcpy(HEADER_2, header_2);
+        sprintf(header, "Host: %s:%s\r\n",  server_infor.web_server, server_infor.web_port);
+        strcat(HEADER_2, header_2);
+        sprintf(header, "User-Agent: esp-idf/%d.%d.%d esp32\r\n", ESP_IDF_VERSION_MAJOR, ESP_IDF_VERSION_MINOR, ESP_IDF_VERSION_PATCH);
+        strcat(HEADER_2, header_2);
+        sprintf(header, "Accept: */*\r\n");
+        strcat(HEADER_2, header_2);
+        sprintf(header, "Content-Type: multipart/form-data; boundary=%s\r\n", BOUNDARY);
+        strcat(HEADER_2, header_2);
+
+        if (write(status, HEADER_2, strlen(HEADER_2)) < 0) {
+            ESP_LOGE(TAG_CAM, "... socket7 send failed");
             close(status);
             vTaskDelay(1000 / portTICK_PERIOD_MS);
             continue;

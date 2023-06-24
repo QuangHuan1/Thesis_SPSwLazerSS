@@ -8,8 +8,10 @@ void lazer_sensor(void *arg)
 
         printf("FRONT %d\n",front);
         printf("REAR %d\n",rear);
+        size_t heapUsedAtStart;
+        heapUsedAtStart = heap_caps_get_free_size(MALLOC_CAP_8BIT);
+        printf("Heap free at start %d.\n", heapUsedAtStart);
 
-        if()
         if(front == 1 && rear == 0 ){
             WORKING_STATE = CHECKIN;
             Get_current_date_time(Current_Date_Time, Current_Date_Time_Raw);
