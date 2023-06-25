@@ -7,7 +7,6 @@
 #include "esp_sleep.h"
 #include "esp_sntp.h"
 
-//wifi
 #include <string.h>
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
@@ -45,12 +44,12 @@ char Current_Date_Time_Raw[50];
  * 
  */
 void Get_current_date_time(char *date_time, char *date_time_raw);
+
 void initialize_sntp(void);
 void obtain_time(void);
 void Set_SystemTime_SNTP();
 
-void rx_task(void *arg);
-esp_err_t init_uart(void);
+
 
 #endif /* __DATETIME_H__ */
 

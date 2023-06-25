@@ -40,6 +40,7 @@ void initialize_sntp(void)
 #endif
     sntp_init();
 }
+
 void obtain_time(void)
 {
     initialize_sntp();

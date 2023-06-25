@@ -21,12 +21,6 @@ uart_pin uart0 = {
     .rxd_pin = GPIO_NUM_3,
 };
 
-// sensor_pin sensor0 = {
-//     .sensor_trigger_pin = GPIO_NUM_13,
-//     .sensor_echo_pin = GPIO_NUM_15,
-// };
-
-
 gpio_serveral gpio0 = {
     .reader_trigger_pin = GPIO_NUM_12,
     .LED_Wifi_Status = GPIO_NUM_14,
@@ -77,15 +71,15 @@ void app_main(void)
     postetag_done = FALSE;
     postimage_done = FALSE;
 
-    NO_CHECKIN = FALSE;
-    SHALL_CHECKIN = FALSE;
-    PREP_CHECKIN = FALSE;
-    DONE_CHECKIN = FALSE;
+    // NO_CHECKIN = FALSE;
+    // SHALL_CHECKIN = FALSE;
+    // PREP_CHECKIN = FALSE;
+    // DONE_CHECKIN = FALSE;
 
-    NO_CHECKOUT = FALSE;
-    SHALL_CHECKOUT = FALSE;
-    PREP_CHECKOUT = FALSE;
-    DONE_CHECKOUT = FALSE;
+    // NO_CHECKOUT = FALSE;
+    // SHALL_CHECKOUT = FALSE;
+    // PREP_CHECKOUT = FALSE;
+    // DONE_CHECKOUT = FALSE;
     esp_log_level_set("*", ESP_LOG_INFO);
     // esp_log_level_set("*", ESP_LOG_NONE);
 
@@ -106,9 +100,8 @@ void app_main(void)
         
         xTaskCreatePinnedToCore(&lazer_sensor, "lazer_sensor", 1024*2, NULL, 0, NULL, 0);
         xTaskCreatePinnedToCore(&check_state, "check_state", 1024*2, NULL, 2, NULL, 0);
-        xTaskCreatePinnedToCore(&jpg_capture, "jpg_capture", 1024*6, NULL, 0, NULL, 1);
-        xTaskCreatePinnedToCore(&rx_task, "rx_task", 1024*6, NULL, 1, NULL, 1);
-
+        xTaskCreatePinnedToCore(&camera_capture, "camera_capture", 1024*6, NULL, 0, NULL, 1);
+        xTaskCreatePinnedToCore(&reader_readata, "reader_readata", 1024*6, NULL, 1, NULL, 1);
 
         ESP_LOGI(TAG_CAM, "Tasks is created and running\n");
     }

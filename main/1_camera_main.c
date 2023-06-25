@@ -40,7 +40,7 @@ esp_err_t initiate_camera(void)
 }
 
 
-void http_post_image(camera_fb_t *fb, char *path)
+void post_image(camera_fb_t *fb, char *path)
 {   
 
     const struct addrinfo hints = {
@@ -155,29 +155,6 @@ void http_post_image(camera_fb_t *fb, char *path)
             continue;
         }
 
-        char HEADER_2[512];
-        char header_2[512];
-
-
-        sprintf(header_2, "POST %s HTTP/1.1\r\nConnection: close\r\n\r\n", path);
-        // sprintf(header, "POST %s HTTP/1.1\r\n", path);
-        strcpy(HEADER_2, header_2);
-        sprintf(header, "Host: %s:%s\r\n",  server_infor.web_server, server_infor.web_port);
-        strcat(HEADER_2, header_2);
-        sprintf(header, "User-Agent: esp-idf/%d.%d.%d esp32\r\n", ESP_IDF_VERSION_MAJOR, ESP_IDF_VERSION_MINOR, ESP_IDF_VERSION_PATCH);
-        strcat(HEADER_2, header_2);
-        sprintf(header, "Accept: */*\r\n");
-        strcat(HEADER_2, header_2);
-        sprintf(header, "Content-Type: multipart/form-data; boundary=%s\r\n", BOUNDARY);
-        strcat(HEADER_2, header_2);
-
-        if (write(status, HEADER_2, strlen(HEADER_2)) < 0) {
-            ESP_LOGE(TAG_CAM, "... socket7 send failed");
-            close(status);
-            vTaskDelay(1000 / portTICK_PERIOD_MS);
-            continue;
-        }
-
         ESP_LOGI(TAG_CAM, "Starting again!");
         vTaskDelay(DELAY_TIME / portTICK_PERIOD_MS);
         
@@ -187,9 +164,8 @@ void http_post_image(camera_fb_t *fb, char *path)
 }
 
 
-void jpg_capture(){
-    static camera_fb_t * fb1 = NULL;
-
+void camera_capture(void){
+    static camera_fb_t * fb = NULL;
     while(1){
         // condition for checkin/out state?
         printf("allow_camera %d\n", allow_camera);
@@ -197,8 +173,8 @@ void jpg_capture(){
 
         if( allow_camera == TRUE && capture_done == FALSE){
 
-            fb1 = esp_camera_fb_get();
-            if (!fb1) {
+            fb = esp_camera_fb_get();
+            if (!fb) {
                 capture_done = FALSE;
                 ESP_LOGE(TAG_CAM, "Camera capture failed");
             }
@@ -212,14 +188,14 @@ void jpg_capture(){
             ESP_LOGI(TAG_CAM, "Uploading Image!");
 
             if(WORKING_STATE == CHECKIN && capture_done == TRUE){
-                http_post_image(fb1, server_infor.post_image_checkin_path);
+                post_image(fb, server_infor.post_image_checkin_path);
             }
             if(WORKING_STATE == CHECKOUT && capture_done == TRUE){
-                http_post_image(fb1, server_infor.post_image_checkout_path);
+                post_image(fb, server_infor.post_image_checkout_path);
             }
             postimage_done = TRUE;
         }
-        esp_camera_fb_return(fb1);
+        esp_camera_fb_return(fb);
         vTaskDelay(DELAY_TIME / portTICK_PERIOD_MS);
     }
 }

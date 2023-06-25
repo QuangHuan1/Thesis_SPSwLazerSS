@@ -33,9 +33,8 @@ extern "C" {
 #include "freertos/ringbuf.h"
 #include "hal/uart_types.h"
 
-
+// Define Camera pin and configuration.
 #define CONFIG_XCLK_FREQ 20000000 
-
 #define CAM_PIN_PWDN 32
 #define CAM_PIN_RESET -1 //software reset will be performed
 #define CAM_PIN_XCLK 0
@@ -78,13 +77,13 @@ esp_err_t initiate_camera(void);
  * IMAGE will be POST using this PATH
  * E.g: "/check-in-out-image/check-in"
  */
-void http_post_image(camera_fb_t *fb, char *path);
+void post_image(camera_fb_t *fb, char *path);
 
 /**
- * @brief One of Main tasks that control Image capture task and OPLOAD 
+ * @brief One of Main tasks that control Image capture task and UPLOAD 
  * this image to Server.
  */
-void jpg_capture();
+void camera_capture(void);
 
 
 #ifdef __cplusplus

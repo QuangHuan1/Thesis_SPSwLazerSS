@@ -158,7 +158,7 @@ lazer_pin lazer0;
  * JSON file will be POST using this PATH
  * E.g: "/check-in/check-in-area"
  */
-void http_post_tagdata(char *tagID, char *path);
+void post_tagdata(char *tagID, char *path);
 
 
 /**
@@ -171,14 +171,38 @@ void indicator(void *arg);
 
 
 /**
- * @brief Drive lamp to indicate error case.
+ * @brief Get data from sensor to determine working state.
  *  
- * @param arg none parameter used.
+ * @param arg None parameter used.
  *
  */
 void lazer_sensor(void *arg);
 
+/**
+ * @brief From working state, control camera and reader to get data properly
+ *  
+ * @param arg None parameter used.
+ *
+ */
 void check_state(void *pvParamters);
+
+/**
+ * @brief Get data from UHF-Reader
+ *  
+ * @param arg None parameter used.
+ *
+ */
+void reader_readata(void *arg);
+
+
+/**
+ * @brief Init UART parameter and config for UART usage.
+ *  
+ * @param arg None parameter used.
+ * 
+ * @param return ESP_OK if UART initialization  & configuration success.
+ */
+esp_err_t init_uart(void);
 
 
 

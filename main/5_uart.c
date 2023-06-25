@@ -17,28 +17,9 @@ esp_err_t init_uart(void) {
     return ESP_OK;
 }
 
-// int sendData(const char* logName, const char* data)
-// {
-//     const int len = strlen(data);
-//     const int txBytes = uart_write_bytes(UART_NUM_2, data, len);
-//     ESP_LOGI(logName, "Wrote %d bytes", txBytes);
-//     return txBytes;
-// }
-
-// static void tx_task(void *arg)
-// {
-//     static const char *TX_TASK_TAG = "TX_TASK";
-//     esp_log_level_set(TX_TASK_TAG, ESP_LOG_INFO);
-//     while (1) {
-//         sendData(TX_TASK_TAG, "Hello world\n");
-//         vTaskDelay(2000 / portTICK_PERIOD_MS);
-//     }
-// }
-
-void rx_task(void *arg)
+void reader_readata(void *arg)
 {   
 
-    // esp_log_level_set(TAG_UART, ESP_LOG_INFO);
     uint8_t* rx_data = (uint8_t*) malloc(RX_BUF_SIZE+1);
 
     while (1) {
@@ -48,9 +29,9 @@ void rx_task(void *arg)
             gpio_set_level(gpio0.reader_trigger_pin, 1);
             vTaskDelay(20/portTICK_PERIOD_MS);
             gpio_set_level(gpio0.reader_trigger_pin, 0);
-            // const int rxBytes = uart_read_bytes(uart0.uart_num, rx_data, RX_BUF_SIZE, 30 / portTICK_RATE_MS);
-            int rxBytes = uart_read_bytes(uart0.uart_num, rx_data, RX_BUF_SIZE, 30 / portTICK_RATE_MS);
-            rxBytes = 18;
+            const int rxBytes = uart_read_bytes(uart0.uart_num, rx_data, RX_BUF_SIZE, 30 / portTICK_RATE_MS);
+            // int rxBytes = uart_read_bytes(uart0.uart_num, rx_data, RX_BUF_SIZE, 30 / portTICK_RATE_MS);
+            // rxBytes = 18;
             ESP_LOGW(TAG_UART, "Read %d bytes\n", rxBytes);
             if (rxBytes > 0 && rxBytes < 25) {
                 rx_data[rxBytes] = 0;
@@ -75,10 +56,10 @@ void rx_task(void *arg)
                 }
                 ESP_LOGI(TAG_UART, "Uploading E-TAG data!");
                 if(WORKING_STATE == CHECKIN){
-                    http_post_tagdata(hexStr, server_infor.post_checkin_path);
+                    post_tagdata(hexStr, server_infor.post_checkin_path);
                 }
                 if(WORKING_STATE == CHECKOUT){
-                    http_post_tagdata(hexStr, server_infor.post_checkout_path);
+                    post_tagdata(hexStr, server_infor.post_checkout_path);
                 }
                 postimage_done = FALSE;
                 postetag_done = TRUE;
@@ -94,7 +75,7 @@ void rx_task(void *arg)
     }
 }
 
-void http_post_tagdata(char *tagID, char *path)
+void post_tagdata(char *tagID, char *path)
 {   
     const struct addrinfo hints = {
         .ai_family = AF_INET,
