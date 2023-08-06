@@ -28,6 +28,7 @@
 #define REAL_AREACODE       "MK01"
 
 
+
 // // Declare Gate and Area Code Khu B
 // #define GATECODE_CHECKIN    "MC00"
 // #define GATECODE_CHECKOUT    "MC01"
@@ -159,7 +160,7 @@ lazer_pin lazer0;
  * E.g: "/check-in/check-in-area"
  */
 void post_tagdata(char *tagID, char *path);
-
+void post_warning(char *messgae, char *path);
 
 /**
  * @brief Drive lamp to indicate error case.

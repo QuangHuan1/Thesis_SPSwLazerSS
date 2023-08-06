@@ -168,8 +168,8 @@ void camera_capture(void){
     static camera_fb_t * fb = NULL;
     while(1){
         // condition for checkin/out state?
-        printf("allow_camera %d\n", allow_camera);
-        printf("capture_done %d\n", capture_done);
+        // printf("allow_camera %d\n", allow_camera);
+        // printf("capture_done %d\n", capture_done);
 
         if( allow_camera == TRUE && capture_done == FALSE){
 
@@ -194,8 +194,8 @@ void camera_capture(void){
                 post_image(fb, server_infor.post_image_checkout_path);
             }
             postimage_done = TRUE;
+            esp_camera_fb_return(fb);
         }
-        esp_camera_fb_return(fb);
         vTaskDelay(DELAY_TIME / portTICK_PERIOD_MS);
     }
 }

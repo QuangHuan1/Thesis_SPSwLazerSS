@@ -23,7 +23,7 @@ uart_pin uart0 = {
 
 gpio_serveral gpio0 = {
     .reader_trigger_pin = GPIO_NUM_12,
-    .LED_Wifi_Status = GPIO_NUM_14,
+    .LED_Wifi_Status = GPIO_NUM_14, 
     .LED_Sensor_Status = GPIO_NUM_2,
 };
 
@@ -96,6 +96,8 @@ void app_main(void)
         vTaskDelay(500 / portTICK_PERIOD_MS);
         gpio_set_pull_mode (lazer0.lazer_front, GPIO_PULLDOWN_ONLY);
         gpio_set_pull_mode (lazer0.lazer_rear, GPIO_PULLDOWN_ONLY);
+        gpio_set_pull_mode (gpio0.reader_trigger_pin, GPIO_PULLDOWN_ONLY);
+
 
         
         xTaskCreatePinnedToCore(&lazer_sensor, "lazer_sensor", 1024*2, NULL, 0, NULL, 0);

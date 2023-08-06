@@ -4,6 +4,7 @@
 esp_err_t init_uart(void) {
     const uart_config_t uart_config = {
         .baud_rate = 115200,
+        // .baud_rate = 57600,
         .data_bits = UART_DATA_8_BITS,
         .parity = UART_PARITY_DISABLE,
         .stop_bits = UART_STOP_BITS_1,
@@ -23,11 +24,12 @@ void reader_readata(void *arg)
     uint8_t* rx_data = (uint8_t*) malloc(RX_BUF_SIZE+1);
 
     while (1) {
+        // printf("allow_reader = %d \n", allow_reader);
+        // printf("readtag_done = %d \n", readtag_done);
 
         if(allow_reader == TRUE && readtag_done == FALSE){
-
             gpio_set_level(gpio0.reader_trigger_pin, 1);
-            vTaskDelay(20/portTICK_PERIOD_MS);
+            vTaskDelay(200/portTICK_PERIOD_MS);
             gpio_set_level(gpio0.reader_trigger_pin, 0);
             const int rxBytes = uart_read_bytes(uart0.uart_num, rx_data, RX_BUF_SIZE, 30 / portTICK_RATE_MS);
             // int rxBytes = uart_read_bytes(uart0.uart_num, rx_data, RX_BUF_SIZE, 30 / portTICK_RATE_MS);
@@ -67,6 +69,7 @@ void reader_readata(void *arg)
 
             }
             else{
+                // post_warning("multiple tags", "/check-in-out-image/check-out");s
                 readtag_done = FALSE;
                 allow_reader = TRUE;
             }
@@ -151,6 +154,79 @@ void post_tagdata(char *tagID, char *path)
                                        tagID, AREACODE);
         }
 
+        printf("%s\n",request_content);
+        sprintf(request_msg, "POST %s HTTP/1.1\r\n"
+                        "Host: %s:%s\r\n"
+                        "Connection: close\r\n"
+                        "Content-Type: application/json\r\n"
+                        "Content-Length:%d\r\n"
+                        "\n%s\r\n", path, 
+                        server_infor.web_server, server_infor.web_port, 
+                        strlen(request_content), 
+                        request_content);
+
+        if (write(status, request_msg, strlen(request_msg)) < 0) {
+            ESP_LOGE(TAG_POST, "... socket send failed");
+            close(status);
+            vTaskDelay(1000 / portTICK_PERIOD_MS);
+            continue;
+        }
+        vTaskDelay(DELAY_TIME / portTICK_PERIOD_MS);
+        close(status);
+        break;
+    }
+}
+
+
+void post_warning(char *message, char *path)
+{   
+    const struct addrinfo hints = {
+        .ai_family = AF_INET,
+        .ai_socktype = SOCK_STREAM,
+    };
+
+    struct addrinfo *res;
+    struct in_addr *addr;
+    int status;
+
+    uint8_t count_loop = 0;
+    while(count_loop <= 5) {
+        count_loop++;
+        int err = getaddrinfo(server_infor.web_server, server_infor.web_port, &hints, &res);
+        if(err != 0 || res == NULL) {
+            ESP_LOGE(TAG_POST, "DNS lookup failed err=%d res=%p", err, res);
+            vTaskDelay(1000 / portTICK_PERIOD_MS);
+            continue;
+        }
+
+        /* Code to print the resolved IP.
+           Note: inet_ntoa is non-reentrant, look at ipaddr_ntoa_r for "real" code */
+        addr = &((struct sockaddr_in *)res->ai_addr)->sin_addr;
+        ESP_LOGI(TAG_POST, "DNS lookup succeeded. IP=%s", inet_ntoa(*addr));
+
+        status = socket(res->ai_family, res->ai_socktype, 0);
+        if(status < 0) {
+            ESP_LOGE(TAG_POST, "... Failed to allocate socket.");
+            freeaddrinfo(res);
+            vTaskDelay(1000 / portTICK_PERIOD_MS);
+            continue;
+        }
+        ESP_LOGI(TAG_POST, "... allocated socket");
+
+        if(connect(status, res->ai_addr, res->ai_addrlen) != 0) {
+            ESP_LOGE(TAG_POST, "... socket connect failed errno=%d", errno);
+            close(status);
+            freeaddrinfo(res);
+            vTaskDelay(1000 / portTICK_PERIOD_MS);
+            continue;
+        }
+
+        ESP_LOGI(TAG_POST, "... connected");
+        freeaddrinfo(res);
+
+       
+        sprintf(request_content, "{\"warning\":\"%s\"}", message);
+    
         printf("%s\n",request_content);
         sprintf(request_msg, "POST %s HTTP/1.1\r\n"
                         "Host: %s:%s\r\n"
